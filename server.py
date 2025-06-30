@@ -145,6 +145,6 @@ def rag_search(query: str) -> str:
 
 if __name__ == "__main__":
 
-    print("Starting MCP Medical Server...")
+    print(" Starting MCP Agentic Server ...")
     mcp.run(transport="stdio")
 
