@@ -1,6 +1,6 @@
 from mcp.server.fastmcp import FastMCP
-from tools9 import DatabaseOperations, fetch_recipients, send_email_function
-from duckduckgo_search import DDGS
+from tools9 import DatabaseOperations, fetch_recipients, send_email_function, extract_email_data_from_response
+
 from tools9 import fetch_recipients, send_email_function, chunks_to_docs_wrapper
 from typing import List
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -48,9 +48,9 @@ def get_vector_store():
 def lookup_recipients(name: str):
     return fetch_recipients(name)
 
-@mcp.tool()
-def prepare_and_send_email(to: str, subject: str, message: str):
-    return send_email_function({"to": to, "subject": subject, "message": message})
+# @mcp.tool()
+# def prepare_and_send_email(to: str, subject: str, message: str):
+#     return send_email_function({"to": to, "subject": subject, "message": message})
 
 
 @mcp.tool()
@@ -67,6 +67,22 @@ def oracle_connect() -> str:
     except Exception as e:
         print(f"Oracle connection failed: {str(e)}")
         return None    
+
+@mcp.tool()
+def extract_email_fields_from_response(response_text: str) -> dict:
+    """
+    Extracts email fields (to, subject, message) from an AI-generated response.
+
+    Input:
+    - response_text: A string containing the AI assistant's output.
+
+    Output:
+    - A dictionary with keys: "to", "subject", "message"
+    """
+    try:
+        return extract_email_data_from_response(response_text)
+    except Exception as e:
+        return {"error": f"Failed to extract email data: {str(e)}"}
 
 
 @mcp.tool()
@@ -144,7 +160,6 @@ def rag_search(query: str) -> str:
 
 
 if __name__ == "__main__":
-
     print(" Starting MCP Agentic Server ...")
     mcp.run(transport="stdio")
 
