@@ -9,7 +9,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores.utils import DistanceStrategy
 from langchain_community.vectorstores.oraclevs import OracleVS
 import os
-mcp = FastMCP("EmailAssistant")
+mcp = FastMCP("AgentAssitant")
 
 global_vector_store = None
 
