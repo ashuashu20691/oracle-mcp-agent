@@ -49,26 +49,35 @@ User Question:
 Respond using available tools.
 """.strip()
 
-async def run_mcp_agent(user_message: Union[str, HumanMessage]) -> str:
+
+async def run_mcp_agent(user_message: str) -> str:
     server_params = StdioServerParameters(command="python", args=["server.py"])
     model = ChatOpenAI(model="gpt-4o", temperature=0)
-
-    chat_history_text = "\n".join([
-        f"User: {m['content']}" if m['role'] == "user" else f"Assistant: {m['content']}"
-        for m in st.session_state.messages
-    ])
 
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
             tools = await load_mcp_tools(session)
+
             agent = create_react_agent(model, tools)
 
+            # 🔧 Use system message to instruct the agent
+            system_message = SystemMessage(content="""
+You are a helpful assistant that can use tools to query data and search indexed documents.
+If unsure, always try using a tool. Only guess if absolutely necessary.
+""")
+
+            # 🧠 Get memory messages from chat_memory
+            history = st.session_state.chat_memory.load_memory_variables({})["chat_history"]
+
+            # 👤 Current prompt
+            human_message = HumanMessage(content=user_message)
+
+            # 🧠 Run agent with full context
             response = await agent.ainvoke({
-                "messages": [
-                    HumanMessage(build_prompt_string(user_message, chat_history_text))
-                ]
+                "messages": [system_message] + history + [human_message]
             })
+
             return response["messages"][-1].content
 
 
